@@ -1,5 +1,7 @@
 # Release Action
 
+[![Release](https://img.shields.io/github/v/release/libnudget/release?logo=github&label=latest)](https://github.com/libnudget/release/releases)
+
 Automated release workflow for multi-package repositories.
 
 ## Overview
