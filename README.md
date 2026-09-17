@@ -48,6 +48,8 @@ jobs:
 | version_bump | Manual version bump override | No | `patch` |
 | tag_prefix | Prefix for git tags | No | `` |
 | release_mode | `pr`, `direct`, or `merge` | No | `pr` |
+| pr_title | Override for the release PR title | No | generated from versions |
+| pr_body | Override for the release PR body | No | generated from versions and commits |
 
 ## Outputs
 
@@ -68,6 +70,13 @@ jobs:
 ## Mode: PR
 
 Creates a PR with version bumps. When a Rust package is bumped, the action also runs `cargo metadata` against the first changed package manifest so `Cargo.lock` is included in the same PR. Tag creation happens when PR is merged (via webhook or manual trigger).
+
+The PR title and body are generated from the release data, never hardcoded:
+
+- Title: `[lib] release <package> <version>, ...` built from the released versions.
+- Body: a per-package old to new version list plus the commits since the last release tag (up to 20 per package).
+
+Pass `pr_title` or `pr_body` to override either one.
 
 ```yaml
 - uses: libnudget/release@v1.0.0
