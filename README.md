@@ -4,7 +4,7 @@
 
 # Release Action
 
-[![Release](https://img.shields.io/github/v/release/libnudget/release?logo=github&label=latest)](https://github.com/libnudget/release/releases)
+[![Release](https://img.shields.io/github/v/release/coccinella-labs/release?logo=github&label=latest)](https://github.com/coccinella-labs/release/releases)
 
 Automated release workflow for multi-package repositories.
 
@@ -32,7 +32,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: libnudget/release@v1.0.0
+      - uses: coccinella-labs/release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: '[{"path": "lib/pkg1", "name": "pkg1"}, {"path": "lib/pkg2", "name": "pkg2"}]'
@@ -79,7 +79,7 @@ The PR title and body are generated from the release data, never hardcoded:
 Pass `pr_title` or `pr_body` to override either one.
 
 ```yaml
-- uses: libnudget/release@v1.0.0
+- uses: coccinella-labs/release@v1.0.0
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     release_mode: pr
@@ -90,7 +90,7 @@ Pass `pr_title` or `pr_body` to override either one.
 Commits version bumps to main, syncs `Cargo.lock` for Rust packages, and creates git tags immediately.
 
 ```yaml
-- uses: libnudget/release@v1.0.0
+- uses: coccinella-labs/release@v1.0.0
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     release_mode: direct
@@ -101,7 +101,7 @@ Commits version bumps to main, syncs `Cargo.lock` for Rust packages, and creates
 Creates git tags and GitHub releases from merged PR versions. Use after PR merge to create tags and releases.
 
 ```yaml
-- uses: libnudget/release@v1.0.0
+- uses: coccinella-labs/release@v1.0.0
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
     release_mode: merge
@@ -154,7 +154,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: libnudget/release@v1.0.0
+      - uses: coccinella-labs/release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: '[{"path": "lib/harper-core", "name": "harper-core"}, {"path": "lib/harper-ui", "name": "harper-ui"}]'
@@ -165,7 +165,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: libnudget/release@v1.0.0
+      - uses: coccinella-labs/release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: '[{"path": "lib/harper-core", "name": "harper-core"}, {"path": "lib/harper-ui", "name": "harper-ui"}]'
