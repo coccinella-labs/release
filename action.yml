@@ -25,6 +25,14 @@ inputs:
     description: 'Release mode: pr (create PR), direct (commit+tag), merge (tag+release after PR merge)'
     required: false
     default: pr
+  pr_title:
+    description: Override for the release PR title. When empty, a title is generated from the released package versions.
+    required: false
+    default: ""
+  pr_body:
+    description: Override for the release PR body. When empty, a body is generated from the released package versions and the commits since the last release.
+    required: false
+    default: ""
 
 outputs:
   released:
@@ -52,6 +60,8 @@ runs:
         USER_BUMP: ${{ inputs.version_bump }}
         TAG_PREFIX: ${{ inputs.tag_prefix }}
         RELEASE_MODE: ${{ inputs.release_mode }}
+        PR_TITLE: ${{ inputs.pr_title }}
+        PR_BODY: ${{ inputs.pr_body }}
       run: |
         if [ -z "$RELEASE_TOKEN" ]; then
           RELEASE_TOKEN="$GH_TOKEN"
@@ -138,6 +148,8 @@ runs:
         commit_msg="release"
         versions_json="{}"
         lock_manifest_path=""
+        release_table=""
+        release_changes=""
         
         while read -r pkg; do
           pkg_path=$(echo "$pkg" | jq -r '.path')
@@ -185,6 +197,8 @@ runs:
             branch_name="${branch_name}-${pkg_name}-${new_version}"
             commit_msg="${commit_msg} ${pkg_name} ${new_version}"
             versions_json=$(echo "$versions_json" | jq -c ". + {\"$pkg_name\": \"$new_version\"}")
+            release_table="${release_table}- ${pkg_name}: ${version} -> ${new_version}"$'\n'
+            release_changes="${release_changes}### ${pkg_name} ${new_version}"$'\n'"$(echo "$commits" | head -20)"$'\n\n'
             if [ -z "$lock_manifest_path" ]; then
               lock_manifest_path="$pkg_path/Cargo.toml"
             fi
@@ -240,11 +254,21 @@ runs:
             
             git push -u origin "$branch_name" --force
             
-            pr_title="[lib] release"
+            if [ -n "$PR_TITLE" ]; then
+              pr_title="$PR_TITLE"
+            else
+              pr_title="[lib] release $(echo "$versions_json" | jq -r 'to_entries | map("\(.key) \(.value)") | join(", ")')"
+            fi
             echo "Creating PR: $pr_title"
             
+            if [ -n "$PR_BODY" ]; then
+              pr_body="$PR_BODY"
+            else
+              pr_body="## Release"$'\n\n'"${release_table}"$'\n'"## Changes since last release"$'\n\n'"${release_changes}"
+            fi
+            
             export GH_TOKEN="$RELEASE_TOKEN"
-            gh pr create --repo $GITHUB_REPOSITORY --base main --head "$branch_name" --title "$pr_title" --body "Automated release PR" 2>&1 || echo "PR creation failed"
+            gh pr create --repo $GITHUB_REPOSITORY --base main --head "$branch_name" --title "$pr_title" --body "$pr_body" 2>&1 || echo "PR creation failed"
           fi
         else
           echo "released=false" >> $GITHUB_OUTPUT
