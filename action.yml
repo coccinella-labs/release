@@ -228,7 +228,19 @@ runs:
           
           if [ "$RELEASE_MODE" = "direct" ]; then
             echo "Direct: committing to main"
-            git add -A
+            # Stage only version files. Never use git add -A here: a blanket
+            # add can sweep workflow files into the release commit, which
+            # GitHub rejects for app tokens without the workflows permission.
+            version_paths=()
+            while read -r pkg; do
+              pkg_path=$(echo "$pkg" | jq -r '.path')
+              pkg_name=$(echo "$pkg" | jq -r '.name')
+              if [ -n "$(echo "$versions_json" | jq -r ".\"$pkg_name\" // empty")" ]; then
+                version_paths+=("$pkg_path/Cargo.toml")
+              fi
+            done <<< "$(echo "$PACKAGES" | jq -c '.[]')"
+            version_paths+=("Cargo.lock")
+            git add -- "${version_paths[@]}"
             git commit -m "[lib] $commit_msg"
             git push origin main
             
@@ -249,7 +261,17 @@ runs:
           else
             echo "PR mode: creating branch and PR"
             git checkout -b "$branch_name"
-            git add -A
+            # Stage only version files, same reason as direct mode above.
+            version_paths=()
+            while read -r pkg; do
+              pkg_path=$(echo "$pkg" | jq -r '.path')
+              pkg_name=$(echo "$pkg" | jq -r '.name')
+              if [ -n "$(echo "$versions_json" | jq -r ".\"$pkg_name\" // empty")" ]; then
+                version_paths+=("$pkg_path/Cargo.toml")
+              fi
+            done <<< "$(echo "$PACKAGES" | jq -c '.[]')"
+            version_paths+=("Cargo.lock")
+            git add -- "${version_paths[@]}"
             git commit -m "[lib] $commit_msg"
             
             git push -u origin "$branch_name" --force
