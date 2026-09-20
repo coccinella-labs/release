@@ -69,7 +69,7 @@ jobs:
 
 ## Mode: PR
 
-Creates a PR with version bumps. When a Rust package is bumped, the action also runs `cargo metadata` against the first changed package manifest so `Cargo.lock` is included in the same PR. Tag creation happens when PR is merged (via webhook or manual trigger).
+Creates a PR with version bumps. When a Rust package is bumped, the action also runs `cargo metadata` against the first changed package manifest so `Cargo.lock` is included in the same PR. Only version files (bumped manifests plus the root lockfile) are committed, never a blanket add. Tag creation happens when PR is merged (via webhook or manual trigger).
 
 The PR title and body are generated from the release data, never hardcoded:
 
